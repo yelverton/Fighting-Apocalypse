@@ -26,7 +26,7 @@ void Game::handleEvents()
 				this->characterVector[0]->specialAttack();
 				break;
 			case sf::Keyboard::Escape:
-				exit(0);
+				//exit(0);
 				window.close();
 			case sf::Keyboard::U:
 				this->characterVector[0]->decreaseLives(10);

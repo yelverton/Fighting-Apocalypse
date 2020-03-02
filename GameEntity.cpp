@@ -278,7 +278,6 @@ void GameEntity::draw(sf::RenderTarget & target, sf::RenderStates states) const
 void GameEntity::flipSprite()
 {
 	
-	
 	if (this->sprite.getScale().x > 0)
 	{
 		this->sprite.setScale(-1, 1.f);
