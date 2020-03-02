@@ -1,24 +1,116 @@
 #include "Character.h"
-
-Character::Character(float speed, int player)
-	:GameEntity(speed, "0"), player(player)
+#include <iostream>
+#include <string>
+Character::Character(int player)
+	:GameEntity(4.0f, "ken", player), player(player), lives(300), hitBoxHead(this->getSpriteGlobal().left, this->getSpriteGlobal().top, 50.f, 50.f)
 {
+	
+	if (player != 0)
+	{
+		this->spawn(700, 520);
+		//this->setSpriteRotation(45);
+		this->flipSprite();
+	}
+	else
+	{
+		this->spawn(100, 520);
+	}
+	jumpVelocity = 0;
+	xDir = 0;
+	yDir = 0;
+	isGrounded = true;
 }
 
 int Character::getLives()
 {
-	return lives;
+	return this->lives;
 }
 
-void Character::decreaseLives()
+void Character::decreaseLives(int amountToDecrease)
 {
-	--lives;
+	if (this->lives > 0)
+	{
+		this->lives -= amountToDecrease;
+	}
+	
 }
 
-void Character::increaseLives()
+void Character::increaseLives(int amountToIncrease)
 {
-	++lives;
+	std::cout << this->lives << std::endl;
+	if (this->lives < 300)
+	{
+		this->lives += amountToIncrease;
+	}
+	
 }
+
+void Character::collisionBetweenCharacters(Character & other)
+{
+	if (this->getHurtbox().intersects(other.getHitbox()))
+	{
+		std::cout << "hej" << std::endl;
+		this->decreaseLives(10);
+	}
+}
+
+void Character::lightPunch()
+{
+
+	changeAnimation(2,3,10,1);
+
+	animationSpriteUpdate();
+}
+
+void Character::hardKick()
+{
+	changeAnimation(6, 5, 13,1);
+
+	animationSpriteUpdate();
+}
+
+void Character::walkRight()
+{
+	walkingTrue();
+	changeAnimation(3, 5, 10,0);
+	animationSpriteUpdate();
+}
+
+void Character::specialAttack()
+{
+	changeAnimation(0, 4, 12,1);
+	animationSpriteUpdate();
+}
+
+void Character::crouch()
+{
+	changeAnimation(9, 1, 4,1);
+	animationSpriteUpdate();
+	
+}
+
+void Character::jump()
+{
+	setVelocity(-3);
+	jumpVelocity = -3;
+	changeAnimation(8, 2, 7, 1);
+	animationSpriteUpdate();
+	std::cout << xDir << std::endl;
+	moveSpritePosition(xDir, jumpVelocity);
+	isJumping(!isGrounded);
+}
+
+void Character::isInAir()
+{
+
+	moveSpritePosition(xDir, jumpVelocity);
+	jumpVelocity += 0.090f;
+	setVelocity(jumpVelocity);
+		isJumping(!isGrounded);
+	//std::cout << "asd" << std::endl;
+}
+
+
 
 void Character::spawn(float xPos, float yPos)
 {
@@ -27,42 +119,89 @@ void Character::spawn(float xPos, float yPos)
 
 void Character::update()
 {
-	if (player != 0)
+	updateHurtbox();
+	updateHitbox();
+	if (getSpritePos().y < 520)
 	{
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-		{
-			moveSpritePosition(0, -1);
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-		{
-			moveSpritePosition(0, 1);
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
-		{
-			moveSpritePosition(1, 0);
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
-		{
-			moveSpritePosition(-1, 0);
-		}
+		//if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+		isInAir();
+		isGrounded = false;
+
+		
 	}
 	else
 	{
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+		isGrounded = true;
+		if (getSpritePos().y > 520)
 		{
-			moveSpritePosition(0, -1);
+			setSpritePosition(getSpritePos().x, 520);
 		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+		jumpVelocity = 0;
+		setVelocity(0);
+		isJumping(!isGrounded);
+	}
+	if (isUnableToMove() == false)
+	{
+		if (isGrounded == true)
 		{
-			moveSpritePosition(0, 1);
+
+
+			if (player != 0)
+			{
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+				{
+					xDir = 1;
+
+					walkRight();
+				}
+				else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+				{
+					xDir = -1;
+
+					walkRight();
+				}
+				else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
+				{
+					xDir = 0;
+					crouch();
+					
+				}
+				else
+				{
+					walkingFalse(5);
+					xDir = 0;
+
+				}
+
+			}
+			else
+			{
+
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+				{
+					xDir = 1;
+
+					walkRight();
+				}
+				else if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+				{
+					xDir = -1;
+
+					walkRight();
+				}
+				else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+				{
+					xDir = 0;
+					crouch();
+				}
+				else
+				{
+					walkingFalse(5);
+					xDir = 0;
+				}
+			}
+			moveSpritePosition(xDir, yDir);
 		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-		{
-			moveSpritePosition(1, 0);
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
-		{
-			moveSpritePosition(-1, 0);
-		}
+		
 	}
 }
